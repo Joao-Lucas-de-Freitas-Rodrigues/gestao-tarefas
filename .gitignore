@@ -1,0 +1,7 @@
+.vs/
+bin/
+obj/
+*.suo
+*.cache
+*.nuget.cache
+*.editorconfig
