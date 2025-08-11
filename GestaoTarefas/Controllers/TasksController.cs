@@ -103,75 +103,76 @@ namespace GestaoTarefas.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(
-        int id,
-        [Bind("Id,CategoryId,Title,Description,Status,Priority,DueDateUtc,Subtasks")]
-        TaskItem taskItem)
+            int id,
+            [Bind("Id,CategoryId,Title,Description,Status,Priority,DueDateUtc,Subtasks")]
+            TaskItem form)
         {
-            if (id != taskItem.Id) return NotFound();
+            if (id != form.Id) return NotFound();
 
-            if (taskItem.DueDateUtc is DateTime d && d.Date < DateTime.UtcNow.Date)
-                ModelState.AddModelError(nameof(taskItem.DueDateUtc), "A data de vencimento não pode ser no passado.");
+            if (form.DueDateUtc is DateTime d && d.Date < DateTime.UtcNow.Date)
+                ModelState.AddModelError(nameof(form.DueDateUtc), "A data de vencimento não pode ser no passado.");
             if (!ModelState.IsValid)
             {
-                ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", taskItem.CategoryId);
-                return View(taskItem);
+                ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", form.CategoryId);
+                return View(form);
             }
 
-            // carrega do banco com subtarefas
             var db = await _context.Tasks
                 .Include(t => t.Subtasks)
                 .FirstOrDefaultAsync(t => t.Id == id);
             if (db is null) return NotFound();
 
+            // bloqueio de edição se concluída
             if (db.Status == TodoStatus.Feito)
                 return BadRequest("Tarefa concluída não pode ser editada.");
 
-            db.Title = taskItem.Title;
-            db.Description = taskItem.Description;
-            db.Status = taskItem.Status;
-            db.Priority = taskItem.Priority;
-            db.CategoryId = taskItem.CategoryId;
-            db.DueDateUtc = taskItem.DueDateUtc;
+            db.Title = form.Title;
+            db.Description = form.Description;
+            db.Status = form.Status;
+            db.Priority = form.Priority;
+            db.CategoryId = form.CategoryId;
+            db.DueDateUtc = form.DueDateUtc;
             db.UpdatedAtUtc = DateTime.UtcNow;
 
-            var incoming = (taskItem.Subtasks ?? new System.Collections.Generic.List<Subtask>())
+            var incoming = (form.Subtasks ?? new System.Collections.Generic.List<Subtask>())
                 .Where(s => !string.IsNullOrWhiteSpace(s.Title))
                 .Select((s, i) => { s.SortOrder = i; return s; })
                 .ToList();
 
-            // atualizar/criar
-            foreach (var s in incoming)
+            var existingById = db.Subtasks.ToDictionary(s => s.Id);
+            var touched = new System.Collections.Generic.HashSet<int>();
+
+            foreach (var s in incoming.Where(s => s.Id > 0))
             {
-                if (s.Id == 0)
+                if (existingById.TryGetValue(s.Id, out var hit))
                 {
-                    db.Subtasks.Add(new Subtask
-                    {
-                        Title = s.Title,
-                        IsCompleted = s.IsCompleted,
-                        SortOrder = s.SortOrder
-                    });
-                }
-                else
-                {
-                    var hit = db.Subtasks.FirstOrDefault(x => x.Id == s.Id);
-                    if (hit != null)
-                    {
-                        hit.Title = s.Title;
-                        hit.IsCompleted = s.IsCompleted;
-                        hit.SortOrder = s.SortOrder;
-                    }
+                    hit.Title = s.Title;
+                    hit.IsCompleted = s.IsCompleted;
+                    hit.SortOrder = s.SortOrder;
+                    touched.Add(s.Id);
                 }
             }
 
-            // remover as que saíram do form
-            var keepIds = incoming.Where(s => s.Id != 0).Select(s => s.Id).ToHashSet();
-            var toRemove = db.Subtasks.Where(s => !keepIds.Contains(s.Id)).ToList();
-            foreach (var rem in toRemove) _context.Subtasks.Remove(rem);
+            var toRemove = db.Subtasks.Where(s => !touched.Contains(s.Id)).ToList();
+            foreach (var rem in toRemove)
+                _context.Subtasks.Remove(rem);
+
+            foreach (var s in incoming.Where(s => s.Id == 0))
+            {
+                db.Subtasks.Add(new Subtask
+                {
+                    Title = s.Title,
+                    IsCompleted = s.IsCompleted,
+                    SortOrder = s.SortOrder,
+                    TaskItemId = db.Id
+                });
+            }
 
             await _context.SaveChangesAsync();
             TempData["Ok"] = "Tarefa atualizada.";
             return RedirectToAction(nameof(Index));
         }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
