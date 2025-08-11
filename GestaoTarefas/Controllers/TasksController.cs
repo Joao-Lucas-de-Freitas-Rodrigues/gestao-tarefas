@@ -20,13 +20,29 @@ namespace GestaoTarefas.Controllers
         }
 
         // GET: /Tasks
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? categoryId, TodoStatus? status, TodoPriority? label, string sort = "recent")
         {
-            var query = _context.Tasks
-                                .Include(t => t.Category)
-                                .OrderByDescending(t => t.CreatedAtUtc);
+            var q = _context.Tasks
+                .Include(t => t.Category)
+                .Include(t => t.Subtasks)
+                .OrderByDescending(t => t.CreatedAtUtc)
+                .AsQueryable();
 
-            return View(await query.ToListAsync());
+            if (categoryId.HasValue) q = q.Where(t => t.CategoryId == categoryId);
+            if (status.HasValue) q = q.Where(t => t.Status == status);
+            if (label.HasValue) q = q.Where(t => t.Priority == label);
+
+            q = sort switch
+            {
+                "activity" => q.OrderByDescending(t => t.UpdatedAtUtc ?? t.CreatedAtUtc),
+                "due" => q.OrderBy(t => t.DueDateUtc ?? DateTime.MaxValue),
+                _ => q.OrderByDescending(t => t.CreatedAtUtc),
+            };
+
+            ViewBag.Categories = new SelectList(await _context.Categories.OrderBy(c => c.Name).ToListAsync(), "Id", "Name", categoryId);
+            ViewBag.Status = status; ViewBag.Label = label; ViewBag.Sort = sort;
+
+            return View(await q.ToListAsync());
         }
 
         // GET: /Tasks/Details/5
