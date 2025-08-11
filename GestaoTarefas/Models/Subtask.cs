@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace GestaoTarefas.Models
 {
@@ -6,8 +7,9 @@ namespace GestaoTarefas.Models
     {
         public int Id { get; set; }
 
-        public int TaskItemId { get; set; }
-        public TaskItem TaskItem { get; set; } = null!;
+        public int TaskItemId { get; set; } 
+        [ValidateNever]                      
+        public TaskItem? TaskItem { get; set; } 
 
         [Required, MaxLength(120)]
         public string Title { get; set; } = string.Empty;
