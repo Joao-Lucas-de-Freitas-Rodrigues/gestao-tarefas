@@ -1,0 +1,76 @@
+﻿@model List<GestaoTarefas.Models.Subtask>
+
+<div class="card mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Subtarefas</strong>
+        <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSubtask()">Adicionar</button>
+    </div>
+    <div class="card-body p-2">
+        <table class="table table-sm mb-0" id="subtasks-table">
+            <thead>
+                <tr>
+                    <th style="width:36px">#</th>
+                    <th>Título</th>
+                    <th style="width:130px" class="text-center">Concluída</th>
+                    <th style="width:48px"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    var list = Model ?? new List<GestaoTarefas.Models.Subtask>();
+                    for (var i = 0; i < list.Count; i++)
+                    {
+                        <tr>
+                            <td class="text-muted">@i</td>
+                            <td>
+                                <input type="hidden" name="Subtasks[@i].Id" value="@list[i].Id" />
+                                <input type="text" name="Subtasks[@i].Title" class="form-control form-control-sm" value="@list[i].Title" />
+                                <input type="hidden" name="Subtasks[@i].SortOrder" value="@list[i].SortOrder" />
+                            </td>
+                            <td class="text-center">
+                                <input type="checkbox" name="Subtasks[@i].IsCompleted" @(list[i].IsCompleted ? "checked" : "") />
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)">x</button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    function addSubtask(){
+      const tbody = document.querySelector('#subtasks-table tbody');
+      const i = tbody.querySelectorAll('tr').length;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="text-muted">${i}</td>
+        <td>
+          <input type="hidden" name="Subtasks[${i}].Id" value="0" />
+          <input type="text" name="Subtasks[${i}].Title" class="form-control form-control-sm" />
+          <input type="hidden" name="Subtasks[${i}].SortOrder" value="${i}" />
+        </td>
+        <td class="text-center">
+          <input type="checkbox" name="Subtasks[${i}].IsCompleted" />
+        </td>
+        <td><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeRow(this)">x</button></td>`;
+      tbody.appendChild(tr);
+    }
+    function removeRow(btn){
+      btn.closest('tr').remove();
+      renumber();
+    }
+    function renumber(){
+      const rows = document.querySelectorAll('#subtasks-table tbody tr');
+      rows.forEach((tr, i)=>{
+        tr.querySelector('td').innerText = i;
+        tr.querySelectorAll('input').forEach(inp=>{
+          inp.name = inp.name.replace(/Subtasks\[\d+\]/, `Subtasks[${i}]`);
+          if (inp.name.endsWith('.SortOrder')) inp.value = i;
+        });
+      });
+    }
+</script>

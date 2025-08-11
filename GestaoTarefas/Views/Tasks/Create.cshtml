@@ -1,59 +1,53 @@
 ﻿@model GestaoTarefas.Models.TaskItem
+@using GestaoTarefas.Models
 @using GestaoTarefas.Models.Enums
-
 @{
-    ViewData["Title"] = "Create";
+    ViewData["Title"] = "Nova Tarefa";
 }
 
-<h1>Create</h1>
+<h3>Nova Tarefa</h3>
 
-<h4>TaskItem</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <select asp-for="CategoryId" class ="form-control" asp-items="ViewBag.CategoryId"></select>
-            </div>
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Description" class="control-label"></label>
-                <input asp-for="Description" class="form-control" />
-                <span asp-validation-for="Description" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <select asp-for="Status" class="form-control" asp-items="Html.GetEnumSelectList<TodoStatus>()"></select>
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Priority" class="control-label"></label>
-                <select asp-for="Priority" class="form-control" asp-items="Html.GetEnumSelectList<TodoPriority>()"></select>
-                <span asp-validation-for="Priority" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DueDateUtc" class="control-label"></label>
-                <input asp-for="DueDateUtc" class="form-control" />
-                <span asp-validation-for="DueDateUtc" class="text-danger"></span>
-            </div>
-
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
-            </div>
-        </form>
+<form asp-action="Create" method="post" class="bg-white p-3 rounded border">
+    <div class="mb-3">
+        <label asp-for="Title" class="form-label"></label>
+        <input asp-for="Title" class="form-control" />
+        <span asp-validation-for="Title" class="text-danger"></span>
     </div>
-</div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
+    <div class="mb-3">
+        <label asp-for="Description" class="form-label"></label>
+        <textarea asp-for="Description" rows="4" class="form-control"></textarea>
+    </div>
+
+    <div class="row">
+        <div class="mb-3 col-sm-4">
+            <label class="form-label">Categoria</label>
+            <select asp-for="CategoryId" class="form-select" asp-items="ViewBag.CategoryId">
+                <option value="">--</option>
+            </select>
+        </div>
+        <div class="mb-3 col-sm-4">
+            <label class="form-label">Status</label>
+            <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<TodoStatus>()"></select>
+        </div>
+        <div class="mb-3 col-sm-4">
+            <label class="form-label">Prioridade</label>
+            <select asp-for="Priority" class="form-select" asp-items="Html.GetEnumSelectList<TodoPriority>()"></select>
+        </div>
+    </div>
+
+    <div class="mb-3 col-sm-4">
+        <label class="form-label">Vencimento</label>
+        <input asp-for="DueDateUtc" type="date" class="form-control" />
+        <span asp-validation-for="DueDateUtc" class="text-danger"></span>
+    </div>
+
+    @Html.Partial("_SubtasksEditor", Model.Subtasks?.ToList() ?? new List<Subtask>())
+
+    <button class="btn btn-primary">Salvar</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancelar</a>
+</form>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <partial name="_ValidationScriptsPartial" />
 }
