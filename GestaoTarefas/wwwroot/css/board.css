@@ -1,0 +1,158 @@
+﻿:root {
+    --bg: #f7f8fc;
+    --card: #fff;
+    --text: #1f2937;
+    --muted: #6b7280;
+    --radius: 16px;
+    --shadow: 0 10px 25px rgba(0,0,0,.08);
+}
+
+body {
+    background: var(--bg);
+}
+
+.board-filters {
+    display: grid;
+    grid-template-columns: repeat(4,1fr);
+    gap: 18px;
+    margin: 10px 0 24px;
+}
+
+.filter {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    font-size: .85rem;
+}
+
+    .filter label {
+        color: var(--muted);
+        font-size: .75rem;
+        margin-bottom: 4px;
+    }
+
+    .filter select {
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: var(--text);
+    }
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(280px,1fr));
+    gap: 22px;
+}
+
+.card-task {
+    background: var(--card);
+    border-radius: 24px;
+    box-shadow: var(--shadow);
+    padding: 18px;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-height: 190px;
+    transition: transform .08s ease, box-shadow .2s;
+}
+
+    .card-task:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 30px rgba(0,0,0,.12);
+    }
+
+.card-title {
+    font-weight: 800;
+    margin: 0 0 6px;
+    color: var(--text);
+}
+
+.card-desc {
+    color: var(--muted);
+    margin: 0 0 10px;
+    font-size: .95rem;
+    white-space: pre-line;
+}
+
+.card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+}
+
+.avatars {
+    display: flex;
+}
+
+.avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    border: 2px solid #fff;
+    margin-left: -8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: .75rem;
+    color: #555;
+}
+
+    .avatar:first-child {
+        margin-left: 0;
+    }
+
+.badges {
+    display: flex;
+    gap: 6px;
+    margin: 6px 0 10px;
+}
+
+.badge {
+    font-size: .72rem;
+    padding: .2rem .5rem;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #3730a3;
+}
+
+    .badge.yellow {
+        background: #fff7cc;
+        color: #a16207;
+    }
+
+    .badge.green {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge.red {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+.star {
+    color: #fbbf24;
+    font-size: 18px;
+    cursor: pointer;
+    opacity: .8
+}
+
+    .star.off {
+        color: #e5e7eb;
+    }
+
+.kebab {
+    font-size: 20px;
+    color: #9ca3af;
+    cursor: pointer;
+}
+
+.date {
+    color: #9ca3af;
+    font-size: .85rem;
+}
