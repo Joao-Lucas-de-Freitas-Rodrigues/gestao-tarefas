@@ -18,14 +18,19 @@
         @foreach (var s in Model.Subtasks.OrderBy(x => x.SortOrder))
         {
             <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
-                    <input type="checkbox" disabled @(s.IsCompleted ? "checked" : "") />
-                    <span class="ms-2 @(s.IsCompleted ? "text-decoration-line-through text-muted" : "")">@s.Title</span>
-                </div>
-                <form asp-action="ToggleSub" method="post" class="m-0">
-                    <input type="hidden" name="id" value="@s.Id" />
-                    <button class="btn btn-sm btn-outline-secondary">@(s.IsCompleted ? "Reabrir" : "Concluir")</button>
+                <form asp-action="ToggleSub" method="post"
+                      class="m-0 w-100 d-flex justify-content-between align-items-center">
                     @Html.AntiForgeryToken()
+                    <input type="hidden" name="id" value="@s.Id" />
+
+                    <div>
+                        <input type="checkbox"
+                               @(s.IsCompleted ? "checked" : "")
+                               onchange="this.form.submit();" />
+                        <span class="ms-2 @(s.IsCompleted ? "text-decoration-line-through text-muted" : "")">
+                            @s.Title
+                        </span>
+                    </div>
                 </form>
             </li>
         }
