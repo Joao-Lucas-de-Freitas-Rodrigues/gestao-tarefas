@@ -11,6 +11,10 @@ body {
     background: var(--bg);
 }
 
+a {
+    text-decoration: none;
+}
+
 .board-filters {
     display: grid;
     grid-template-columns: repeat(4,1fr);
@@ -72,14 +76,24 @@ body {
 
 .card-desc {
     color: var(--muted);
-    margin: 0 0 10px;
     font-size: .95rem;
     white-space: pre-line;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    max-height: calc(1.4em * 5);
+    overflow-y: auto;
+}
+
+.card-bottom {
+    display: flex;
+    flex-direction: column;
+    margin-top: auto;
 }
 
 .card-meta {
     display: flex;
-    justify-content: space-between;
+    justify-content: end;
     align-items: center;
     margin-top: auto;
 }
