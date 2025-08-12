@@ -4,7 +4,6 @@
     {
         Aberto = 0,
         Andamento = 1,
-        Feito = 2,
-        Arquivado = 3
+        Feito = 2
     }
 }
