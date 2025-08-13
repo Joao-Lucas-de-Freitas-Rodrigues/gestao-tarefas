@@ -58,16 +58,14 @@
                 }
                 @if (overdue)
                 {
-                    <span class="badge red">Overdue</span>
+                    <span class="badge red">Expirado</span>
                 }
             </div>
 
             <div class="card-bottom">
                 @if (t.Subtasks?.Any() == true)
                 {
-                    <div class="card-desc subtasks" style="margin-top:-6px">
-                        @t.Subtasks.Count(s => s.IsCompleted) / @t.Subtasks.Count() subtarefas
-                    </div>
+                    <div class="card-desc subtasks" style="margin: 15px;text-align: center;">@t.Subtasks.Count(s => s.IsCompleted) / @t.Subtasks.Count() subtarefas</div>
                 }
 
                 <div class="card-meta">
@@ -97,6 +95,17 @@
                             }
                             @texto
                         </span>
+                        @if (t.Status != TodoStatus.Feito)
+                        {
+                            <form asp-action="SetDone" method="post" asp-route-id="@t.Id"
+                                  onclick="event.stopPropagation();" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-success" title="Concluir">
+                                    <i class="fa fa-check"></i>
+                                </button>
+                            </form>
+                        }
+
                         @if (t.Status != TodoStatus.Feito && t.Status != TodoStatus.Andamento)
                         {
                             <form asp-action="Start" method="post" asp-route-id="@t.Id"
@@ -108,17 +117,36 @@
                             </form>
                         }
 
+                        
+
                         @if (t.Status == TodoStatus.Andamento)
                         {
                             <form asp-action="SetOpen" method="post" asp-route-id="@t.Id"
                                   onclick="event.stopPropagation();" style="display:inline;">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Voltar para Aberto">
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Parar">
                                     <i class="fa fa-pause"></i>
                                 </button>
                             </form>
                         }
-                        <a asp-action="Edit" asp-route-id="@t.Id" title="Editar" onclick="event.stopPropagation();" style="font-size:18px;color:#4b5563;"><i class="fa fa-pen"></i></a>
+                        
+                        @if (t.Status == TodoStatus.Feito)
+                        {
+                            <form asp-action="SetOpen" method="post" asp-route-id="@t.Id"
+                                  onclick="event.stopPropagation();" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-warning" title="Reabrir">
+                                    <i class="fa fa-undo"></i> Reabrir
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a asp-action="Edit" asp-route-id="@t.Id" title="Editar"
+                               onclick="event.stopPropagation();" style="font-size:18px;color:#4b5563;">
+                                <i class="fa fa-pen"></i>
+                            </a>
+                        }
                         <form asp-action="Delete" method="post"
                               asp-route-id="@t.Id"
                               onclick="event.stopPropagation();"
