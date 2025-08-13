@@ -63,10 +63,20 @@ a {
     transition: transform .08s ease, box-shadow .2s;
 }
 
-    .card-task:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 14px 30px rgba(0,0,0,.12);
+.card-task.done {
+   border: 2px solid #4caf50; 
+   background-color: #e8f5e9;
+}
+
+    .card-task.inprogress {
+        border: 2px solid #2296D6;
+        background-color: rgba(0, 164, 255, 0.3);
     }
+
+.card-task:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 14px 30px rgba(0,0,0,.12);
+}
 
 .card-title {
     font-weight: 800;
@@ -124,6 +134,16 @@ a {
     display: flex;
     gap: 6px;
     margin: 6px 0 10px;
+}
+
+.badge.blue {
+    background: #e0f2fe;
+    color: #075985;
+}
+
+.badge.green {
+    background: #0BBF2D;
+    color: #075985;
 }
 
 .badge {
