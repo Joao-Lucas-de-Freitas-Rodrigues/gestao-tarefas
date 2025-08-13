@@ -226,8 +226,13 @@ namespace GestaoTarefas.Controllers
         public async Task<IActionResult> ToggleSub(int id)
         {
             var sub = await _context.Subtasks.FindAsync(id);
-            if (sub is null) return NotFound();
+            if (sub is null || sub.TaskItem is null || sub.TaskItem.IsDeleted)
+            {
+                return NotFound();
+            }
+
             sub.IsCompleted = !sub.IsCompleted;
+            sub.TaskItem.UpdatedAtUtc = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Details), new { id = sub.TaskItemId });
         }
