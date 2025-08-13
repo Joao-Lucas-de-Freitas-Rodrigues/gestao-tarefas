@@ -2,14 +2,14 @@
 @using GestaoTarefas.Models.Enums
 
 @{
-    ViewData["Title"] = "Board";
+    ViewData["Title"] = "Quadro";
     var catList = (SelectList)ViewBag.Categories;
     var selStatus = (TodoStatus?)ViewBag.Status;
     var selLabel = (TodoPriority?)ViewBag.Label;
     var selSort = (string)(ViewBag.Sort ?? "recent");
 }
 
-<h2 style="margin:10px 0 6px">Board</h2>
+<h2 style="margin:10px 0 6px">Quadro</h2>
 
 <form method="get" class="board-filters">
     <div class="filter">
@@ -29,7 +29,7 @@
         </select>
     </div>
     <div class="filter">
-        <label>Sort</label>
+        <label>Ordenação</label>
         <select name="sort">
             <option value="activity" selected="@(selSort == "activity")">Por Atividade</option>
             <option value="due" selected="@(selSort == "due")">Pelo Prazo</option>
@@ -42,7 +42,7 @@
     @foreach (var t in Model)
     {
         var overdue = t.DueDateUtc.HasValue && t.DueDateUtc.Value.Date < DateTime.UtcNow.Date && t.Status != TodoStatus.Feito;
-        <div class="card-task">
+        <div class="card-task @(t.Status == TodoStatus.Feito ? "done" : t.Status == TodoStatus.Andamento ? "inprogress" : "")" onclick="window.location='@Url.Action("Details", new { id = t.Id })'" style="cursor:pointer;">
             <div class="card-title">@t.Title</div>
             @if (!string.IsNullOrWhiteSpace(t.Description))
             {
@@ -51,7 +51,7 @@
 
             <div class="badges">
                 <span class="badge @(t.Priority == TodoPriority.Crítica ? "red" : t.Priority == TodoPriority.Alta ? "yellow" : "")">@t.Priority</span>
-                <span class="badge">@t.Status</span>
+                <span class="badge @(t.Status == TodoStatus.Feito ? "green" : t.Status == TodoStatus.Andamento ? "blue" : "")">@t.Status</span>
                 @if (t.Category != null)
                 {
                     <span class="badge">@t.Category.Name</span>
@@ -62,24 +62,80 @@
                 }
             </div>
 
-            @if (t.Subtasks?.Any() == true)
-            {
-                <div class="card-desc" style="margin-top:-6px">
-                    @t.Subtasks.Count(s => s.IsCompleted) / @t.Subtasks.Count() subtarefas
-                </div>
-            }
+            <div class="card-bottom">
+                @if (t.Subtasks?.Any() == true)
+                {
+                    <div class="card-desc subtasks" style="margin-top:-6px">
+                        @t.Subtasks.Count(s => s.IsCompleted) / @t.Subtasks.Count() subtarefas
+                    </div>
+                }
 
-            <div class="card-meta">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <span class="date">@((t.UpdatedAtUtc ?? t.CreatedAtUtc).ToLocalTime().ToString("d 'days ago'").Replace("01", "1").Replace("02", "2"))</span>
-                    <a asp-action="Details" asp-route-id="@t.Id" class="kebab" title="Open">⋮</a>
-                    <a asp-action="Edit" asp-route-id="@t.Id" class="star off" title="Favorite">★</a>
+                <div class="card-meta">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span class="date">
+                            @{
+                                var baseDate = t.DueDateUtc?.ToLocalTime().Date
+                                ?? (t.UpdatedAtUtc ?? t.CreatedAtUtc).ToLocalTime().Date;
+
+                                var today = DateTime.Now.Date;
+                                var diff = (today - baseDate).Days;
+
+                                string texto;
+                                if (diff == 0)
+                                {
+                                    texto = "hoje";
+                                }
+                                else if (diff > 0)
+                                {
+                                    texto = diff == 1 ? "1 dia atrás" : $"{diff} dias atrás";
+                                }
+                                else
+                                {
+                                    var diasRestantes = Math.Abs(diff);
+                                    texto = diasRestantes == 1 ? "em 1 dia" : $"em {diasRestantes} dias";
+                                }
+                            }
+                            @texto
+                        </span>
+                        @if (t.Status != TodoStatus.Feito && t.Status != TodoStatus.Andamento)
+                        {
+                            <form asp-action="Start" method="post" asp-route-id="@t.Id"
+                                  onclick="event.stopPropagation();" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-primary" title="Iniciar">
+                                    <i class="fa fa-play"></i>
+                                </button>
+                            </form>
+                        }
+
+                        @if (t.Status == TodoStatus.Andamento)
+                        {
+                            <form asp-action="SetOpen" method="post" asp-route-id="@t.Id"
+                                  onclick="event.stopPropagation();" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-secondary" title="Voltar para Aberto">
+                                    <i class="fa fa-pause"></i>
+                                </button>
+                            </form>
+                        }
+                        <a asp-action="Edit" asp-route-id="@t.Id" title="Editar" onclick="event.stopPropagation();" style="font-size:18px;color:#4b5563;"><i class="fa fa-pen"></i></a>
+                        <form asp-action="Delete" method="post"
+                              asp-route-id="@t.Id"
+                              onclick="event.stopPropagation();"
+                              onsubmit="return confirm('Excluir esta tarefa?');"
+                              style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="kebab" title="Excluir"
+                                    style="background:none;border:0;color:#b91c1c;font-size:18px;cursor:pointer;">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     }
 
-    <!-- card “novo” -->
     <div class="card-task" style="display:flex; align-items:center; justify-content:center; border:2px dashed #e5e7eb;">
         <a asp-action="Create" class="btn btn-outline-secondary">+ Add card</a>
     </div>
