@@ -49,14 +49,14 @@ namespace GestaoTarefas.Controllers
         // GET: /Tasks/Details/5
         public async Task<IActionResult> Details(int? id)
         {
-            if (id is null) return NotFound();
+            if (id is null) { return NotFound(); }
 
             var taskItem = await _context.Tasks
                 .Include(t => t.Category)
                 .Include(t => t.Subtasks.OrderBy(s => s.SortOrder))
                 .FirstOrDefaultAsync(m => m.Id == id);
 
-            if (taskItem is null) return NotFound();
+            if (taskItem is null) { return NotFound(); }
             return View(taskItem);
         }
 
@@ -73,9 +73,10 @@ namespace GestaoTarefas.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CategoryId,Title,Description,Status,Priority,DueDateUtc,Subtasks")] TaskItem taskItem)
         {
-            // regra: vencimento não pode ser no passado
             if (taskItem.DueDateUtc is DateTime d && d.Date < DateTime.UtcNow.Date)
+            {
                 ModelState.AddModelError(nameof(taskItem.DueDateUtc), "A data de vencimento não pode ser no passado.");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -107,10 +108,13 @@ namespace GestaoTarefas.Controllers
                 .Include(t => t.Subtasks.OrderBy(s => s.SortOrder))
                 .FirstOrDefaultAsync(t => t.Id == id);
 
-            if (taskItem is null) return NotFound();
+            if (taskItem is null) { return NotFound(); }
 
             if (taskItem.Status == TodoStatus.Feito)
-                return BadRequest("Tarefa concluída não pode ser editada.");
+            {
+                TempData["Warning"] = "Tarefa concluída não pode ser editada.";
+                return RedirectToAction(nameof(Details), new { id = taskItem.Id });
+            }
 
             ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", taskItem.CategoryId);
             return View(taskItem);
@@ -127,7 +131,9 @@ namespace GestaoTarefas.Controllers
             if (id != form.Id) return NotFound();
 
             if (form.DueDateUtc is DateTime d && d.Date < DateTime.UtcNow.Date)
+            {
                 ModelState.AddModelError(nameof(form.DueDateUtc), "A data de vencimento não pode ser no passado.");
+            }
             if (!ModelState.IsValid)
             {
                 ViewData["CategoryId"] = new SelectList(_context.Categories, "Id", "Name", form.CategoryId);
@@ -139,9 +145,11 @@ namespace GestaoTarefas.Controllers
                 .FirstOrDefaultAsync(t => t.Id == id);
             if (db is null) return NotFound();
 
-            // bloqueio de edição se concluída
             if (db.Status == TodoStatus.Feito)
-                return BadRequest("Tarefa concluída não pode ser editada.");
+            {
+                TempData["Warning"] = "Tarefa concluída não pode ser editada.";
+                return RedirectToAction(nameof(Details), new { id = db.Id });
+            }
 
             db.Title = form.Title;
             db.Description = form.Description;
@@ -172,7 +180,9 @@ namespace GestaoTarefas.Controllers
 
             var toRemove = db.Subtasks.Where(s => !touched.Contains(s.Id)).ToList();
             foreach (var rem in toRemove)
+            {
                 _context.Subtasks.Remove(rem);
+            }
 
             foreach (var s in incoming.Where(s => s.Id == 0))
             {
@@ -193,7 +203,7 @@ namespace GestaoTarefas.Controllers
         // GET: /Tasks/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
-            if (id is null) return NotFound();
+            if (id is null) { return NotFound(); }
 
             var taskItem = await _context.Tasks
                 .Include(t => t.Category)
@@ -226,13 +236,9 @@ namespace GestaoTarefas.Controllers
         public async Task<IActionResult> ToggleSub(int id)
         {
             var sub = await _context.Subtasks.FindAsync(id);
-            if (sub is null || sub.TaskItem is null || sub.TaskItem.IsDeleted)
-            {
-                return NotFound();
-            }
+            if (sub is null) { return NotFound(); }
 
             sub.IsCompleted = !sub.IsCompleted;
-            sub.TaskItem.UpdatedAtUtc = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Details), new { id = sub.TaskItemId });
         }
@@ -242,7 +248,7 @@ namespace GestaoTarefas.Controllers
         public async Task<IActionResult> Start(int id)
         {
             var task = await _context.Tasks.FindAsync(id);
-            if (task is null || task.IsDeleted) return NotFound();
+            if (task is null || task.IsDeleted) { return NotFound(); }
             if (task.Status != TodoStatus.Feito)
             {
                 task.Status = TodoStatus.Andamento;
@@ -254,16 +260,37 @@ namespace GestaoTarefas.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetDone(int id)
+        {
+            var task = await _context.Tasks.FindAsync(id);
+            if (task is null || task.IsDeleted) return NotFound();
+
+            if (task.Status != TodoStatus.Feito)
+            {
+                task.Status = TodoStatus.Feito;
+                task.UpdatedAtUtc = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+                TempData["Ok"] = "Tarefa concluída.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetOpen(int id)
         {
             var task = await _context.Tasks.FindAsync(id);
             if (task is null || task.IsDeleted) return NotFound();
-            if (task.Status != TodoStatus.Feito)
+
+            if (task.Status != TodoStatus.Aberto)
             {
                 task.Status = TodoStatus.Aberto;
                 task.UpdatedAtUtc = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
+                TempData["Ok"] = "Tarefa reaberta.";
             }
+
             return RedirectToAction(nameof(Index));
         }
 
