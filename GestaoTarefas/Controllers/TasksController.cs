@@ -190,19 +190,6 @@ namespace GestaoTarefas.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleSub(int id)
-        {
-            var sub = await _context.Subtasks.FindAsync(id);
-            if (sub is null) return NotFound();
-            sub.IsCompleted = !sub.IsCompleted;
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Details), new { id = sub.TaskItemId });
-        }
-
-
         // GET: /Tasks/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
@@ -234,6 +221,46 @@ namespace GestaoTarefas.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleSub(int id)
+        {
+            var sub = await _context.Subtasks.FindAsync(id);
+            if (sub is null) return NotFound();
+            sub.IsCompleted = !sub.IsCompleted;
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Details), new { id = sub.TaskItemId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Start(int id)
+        {
+            var task = await _context.Tasks.FindAsync(id);
+            if (task is null || task.IsDeleted) return NotFound();
+            if (task.Status != TodoStatus.Feito)
+            {
+                task.Status = TodoStatus.Andamento;
+                task.UpdatedAtUtc = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetOpen(int id)
+        {
+            var task = await _context.Tasks.FindAsync(id);
+            if (task is null || task.IsDeleted) return NotFound();
+            if (task.Status != TodoStatus.Feito)
+            {
+                task.Status = TodoStatus.Aberto;
+                task.UpdatedAtUtc = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+            }
+            return RedirectToAction(nameof(Index));
+        }
 
         private bool TaskItemExists(int id) =>
             _context.Tasks.Any(e => e.Id == id);
