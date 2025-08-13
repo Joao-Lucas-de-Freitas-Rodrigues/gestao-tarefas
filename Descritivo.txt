@@ -1,0 +1,44 @@
+Descritivo do Projeto
+
+O projeto foi inspirado em ferramentas de gestão como o ClickUp, permitindo criar tarefas principais e associar subtarefas para melhorar a organização e o acompanhamento das atividades.
+Para facilitar o controle, foi implementado um sistema de prioridade, definido de acordo com o grau de criticidade e a data de expiração de cada tarefa.
+
+As categorias (ex.: Estudo, Trabalho, Pessoal) permitem classificar as tarefas e filtrá-las de forma mais eficiente. Tanto Status quanto Prioridade foram implementados como Enums, pois são valores fixos e raramente alterados, o que torna o código mais limpo e reduz riscos de inconsistência.
+
+Regras de Negócio
+
+Criação e edição de tarefas:
+
+- Não é permitido definir uma data de vencimento no passado.
+
+- Tarefas concluídas (Status = Feito) não podem ser editadas.
+
+Subtarefas:
+
+- Cada subtarefa possui sua própria ordem de exibição.
+
+- É possível concluir ou reabrir subtarefas, atualizando a atividade da tarefa principal.
+
+Status e prioridade:
+
+- Status pré-definidos via Enum: Aberto, Andamento, Feito.
+
+- Prioridades pré-definidas via Enum: Baixa, Média, Alta, Crítica.
+
+Exclusão:
+
+- Implementado soft delete, preservando os dados para possível recuperação futura.
+
+- Itens excluídos não aparecem na listagem normal.
+
+Arquitetura
+O projeto segue o padrão MVC (Model-View-Controller), utilizando Entity Framework Core com Migrations para criação e manutenção do banco de dados SQL Server.
+A camada de Models foi mantida simples, com três entidades principais:
+
+TaskItem – Representa a tarefa principal.
+
+Subtask – Representa etapas menores relacionadas a uma tarefa principal.
+
+Category – Classifica tarefas em grupos como Estudo, Trabalho ou Pessoal.
+
+A comunicação com o banco de dados é feita diretamente via EF Core, aproveitando Include para carregamento das relações e garantindo filtros para soft delete. O uso de TempData e ViewData foi aplicado para fornecer mensagens de feedback ao usuário.
