@@ -70,7 +70,7 @@ a {
 
     .card-task.inprogress {
         border: 2px solid #2296D6;
-        background-color: rgba(0, 164, 255, 0.3);
+        background-color: rgba(0, 164, 255, 0.2);
     }
 
 .card-task:hover {
