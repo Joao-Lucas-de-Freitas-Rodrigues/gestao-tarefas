@@ -18,6 +18,31 @@
             </div>
         </nav>
     </header>
+
+    <div class="alert-stack">
+        @if (TempData["Ok"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Ok"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Warning"] != null)
+        {
+            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                @TempData["Warning"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+    </div>
+
     <div class="container">
         <main role="main" class="pb-3">
             @RenderBody()
@@ -33,5 +58,27 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <style>
+        .alert-stack {
+            position: fixed;
+            top: 70px;
+            right: 16px;
+            z-index: 1055;
+            width: min(420px, calc(100% - 32px));
+        }
+
+            .alert-stack .alert {
+                margin-bottom: 8px;
+            }
+    </style>
+
+    <script>
+        setTimeout(() => {
+          document.querySelectorAll('.alert').forEach(el => {
+            try { new bootstrap.Alert(el).close(); } catch {}
+          });
+        }, 4000);
+    </script>
 </body>
 </html>
