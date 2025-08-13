@@ -23,6 +23,7 @@ namespace GestaoTarefas.Controllers
         public async Task<IActionResult> Index(int? categoryId, TodoStatus? status, TodoPriority? label, string sort = "recent")
         {
             var q = _context.Tasks
+                .Where(t => !t.IsDeleted)
                 .Include(t => t.Category)
                 .Include(t => t.Subtasks)
                 .OrderByDescending(t => t.CreatedAtUtc)
